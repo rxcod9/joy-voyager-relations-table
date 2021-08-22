@@ -4,7 +4,7 @@ This [Laravel](https://laravel.com/)/[Voyager](https://voyager.devdojo.com/) mod
 
 By 🐼 [Ramakant Gangwar](https://github.com/rxcod9).
 
-[![Screenshot](https://raw.githubusercontent.com/rxcod9/joy-voyager-relations-table/main/cover.jpg)](https://joy-voyager-relations-table.herokuapp.com)
+[![Screenshot](https://raw.githubusercontent.com/rxcod9/joy-voyager-relations-table/main/cover.jpg)](https://joy-voyager-datatable.herokuapp.com)
 
 [![Latest Version](https://img.shields.io/github/v/release/rxcod9/joy-voyager-relations-table?style=flat-square)](https://github.com/rxcod9/joy-voyager-relations-table/releases)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/rxcod9/joy-voyager-relations-table/run-tests?label=tests)
@@ -38,13 +38,13 @@ Installation generates.
 
 --- -->
 
-<!-- ## Views Customization
+## Views Customization
 
-In order to override views delivered by Voyager DataTable, copy contents from ``vendor/joy/voyager-relations-table/resources/views`` to the ``views/vendor/joy-voyager-relations-table`` directory of your Laravel installation. -->
+In order to override views delivered by Voyager Relations Table, copy contents from ``vendor/joy/voyager-relations-table/resources/views`` to the ``views/vendor/joy-voyager-relations-table`` directory of your Laravel installation.
 
 ## Working Example
 
-You can try laravel demo here [https://joy-voyager-relations-table.herokuapp.com/api/documentation](https://joy-voyager-relations-table.herokuapp.com/api/documentation).
+You can try laravel demo here [https://joy-voyager-datatable.herokuapp.com](https://joy-voyager-datatable.herokuapp.com).
 
 ## Documentation
 
