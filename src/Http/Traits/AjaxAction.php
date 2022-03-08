@@ -36,7 +36,7 @@ trait AjaxAction
 
         // GET THE DataType based on the slug
         $parentDataType = Voyager::model('DataType')->where('slug', '=', $parentSlug)->first();
-        $dataType       = Voyager::model('DataType')->where('slug', '=', $slug)->first();
+        $dataType       = Voyager::model('DataType')->where('slug', '=', $slug)->firstOrFail();
 
         // Check permission
         $this->authorize('read', app($parentDataType->model_name));

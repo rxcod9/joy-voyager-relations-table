@@ -4,7 +4,7 @@ This [Laravel](https://laravel.com/)/[Voyager](https://voyager.devdojo.com/) mod
 
 By 🐼 [Ramakant Gangwar](https://github.com/rxcod9).
 
-[![Screenshot](https://raw.githubusercontent.com/rxcod9/joy-voyager-relations-table/main/cover.jpg)](https://joy-voyager-datatable.herokuapp.com)
+[![Screenshot](https://raw.githubusercontent.com/rxcod9/joy-voyager-relations-table/main/cover.jpg)](https://joy-voyager.herokuapp.com)
 
 [![Latest Version](https://img.shields.io/github/v/release/rxcod9/joy-voyager-relations-table?style=flat-square)](https://github.com/rxcod9/joy-voyager-relations-table/releases)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/rxcod9/joy-voyager-relations-table/run-tests?label=tests)
@@ -44,7 +44,16 @@ In order to override views delivered by Voyager Relations Table, copy contents f
 
 ## Working Example
 
-You can try laravel demo here [https://joy-voyager-datatable.herokuapp.com](https://joy-voyager-datatable.herokuapp.com).
+You can try laravel demo here [https://joy-voyager.herokuapp.com](https://joy-voyager.herokuapp.com).<br/>
+Relation route structure is 
+```
+Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table', $breadController.'@index')->name($dataType->slug.'.relations-table');
+```
+Make sure `{relation}` exists in your model.<br/>
+Here are few examples you can check<br/>
+[/admin/users/2/role-relations-roles-table](https://joy-voyager.herokuapp.com/admin/users/2/role-relations-roles-table)<br/>
+[/admin/users/2/roles-relations-roles-table](https://joy-voyager.herokuapp.com/admin/users/2/roles-relations-roles-table)<br/>
+[/admin/roles/1/users-relations-users-table](https://joy-voyager.herokuapp.com/admin/roles/1/users-relations-users-table)
 
 ## Documentation
 

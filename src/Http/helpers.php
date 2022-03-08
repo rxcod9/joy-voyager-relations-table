@@ -17,9 +17,13 @@ if (!function_exists('modelHasRelationshipMethod')) {
         // and hydrate the relationship's value on the "relationships" array.
         if (method_exists($model, $relationshipMethod)) {
             //Uses PHP built in function to determine whether the returned object is a laravel relation
+            $result = $model->$relationshipMethod();
             return is_a(
-                $model->$relationshipMethod(),
+                $result,
                 "Illuminate\Database\Eloquent\Relations\Relation"
+            ) || is_a(
+                $result,
+                "Illuminate\Database\Eloquent\Builder"
             );
         }
 

@@ -5,9 +5,9 @@
 @section('page_header')
     <div class="container-fluid">
         <h1 class="page-title">
-            <i class="{{ $dataType->icon }}"></i> {{ $dataType->getTranslatedAttribute('display_name_plural') }}
+            <i class="{{ $dataType->icon }}"></i> {{ $dataType->getTranslatedAttribute('display_name_plural') }} for {{ $parentDataType->getTranslatedAttribute('display_name_singular') }} <a href="{{ route('voyager.'.$parentDataType->slug.'.show', $parentData->getKey()) }}">{{ $parentData->name ?? ($parentData->getKeyName() . '#' . $parentData->getKey()) }}</a>
         </h1>
-        @can('add', app($dataType->model_name))
+        {{-- @can('add', app($dataType->model_name))
             <a href="{{ route('voyager.'.$dataType->slug.'.create') }}" class="btn btn-success btn-add-new">
                 <i class="voyager-plus"></i> <span>{{ __('voyager::generic.add_new') }}</span>
             </a>
@@ -22,16 +22,19 @@
                 </a>
             @endif
         @endcan
+        --}}
         @can('delete', app($dataType->model_name))
             @if($usesSoftDeletes)
                 <input type="checkbox" @if ($showSoftDeleted) checked @endif id="show_soft_deletes" data-toggle="toggle" data-on="{{ __('voyager::bread.soft_deletes_off') }}" data-off="{{ __('voyager::bread.soft_deletes_on') }}">
             @endif
         @endcan
+        {{--
         @foreach($actions as $action)
             @if (method_exists($action, 'massAction'))
                 @include('voyager::bread.partials.actions', ['action' => $action, 'data' => null])
             @endif
         @endforeach
+        --}}
         @include('voyager::multilingual.language-selector')
     </div>
 @stop
@@ -105,7 +108,7 @@
     <script>
         $(document).ready(function () {
 
-            var table = $('#dataTable').DataTable({!! json_encode(
+            var options = {!! json_encode(
                 array_merge([
                     "order" => $orderColumn,
                     "language" => __('voyager::datatable'),
@@ -118,7 +121,23 @@
                     "columns" => \dataTypeTableColumns($dataType, $showCheckboxColumn),
                 ],
                 config('voyager.dashboard.data_tables', []))
-            , true) !!});
+            , true) !!};
+
+            options = $.extend(
+                options,
+                {
+                    "drawCallback": function( settings ) {
+                        $('.select_all').off('click');
+                        $('.select_all').on('click', function(e) {
+                            console.log('clicked');
+                            e.stopPropagation();
+                            $('input[name="row_id"]').prop('checked', $(this).prop('checked')).trigger('change');
+                        });
+                    }
+                }
+            );
+
+            var table = $('#dataTable').DataTable(options);
 
             @if ($isModelTranslatable)
                 $('.side-body').multilingual();
@@ -135,7 +154,7 @@
 
 
         var deleteFormAction;
-        $('td').on('click', '.delete', function (e) {
+        $('#dataTable').on('click', 'td .delete', function (e) {
             $('#delete_form')[0].action = '{{ route('voyager.'.$dataType->slug.'.destroy', '__id') }}'.replace('__id', $(this).data('id'));
             $('#delete_modal').modal('show');
         });
