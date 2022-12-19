@@ -6,6 +6,8 @@ namespace Joy\VoyagerRelationsTable;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Joy\VoyagerRelationsTable\View\Components\RelationsTable;
+use Joy\VoyagerRelationsTable\View\Components\RelationsTables;
 
 /**
  * Class VoyagerRelationsTableServiceProvider
@@ -37,6 +39,8 @@ class VoyagerRelationsTableServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'joy-voyager-relations-table');
+
+        $this->bootComponents();
     }
 
     /**
@@ -60,6 +64,16 @@ class VoyagerRelationsTableServiceProvider extends ServiceProvider
         Route::prefix(config('joy-voyager-relations-table.route_prefix', 'api'))
             ->middleware('api')
             ->group(__DIR__ . '/../routes/api.php');
+    }
+
+    /**
+     * Boot components.
+     */
+    protected function bootComponents(): void
+    {
+        app('blade.compiler')->component('joy-voyager-relations-table', RelationsTable::class);
+        app('blade.compiler')->component('joy-voyager-relations-tables', RelationsTables::class);
+        app('blade.compiler')->componentNamespace('\\Joy\\VoyagerRelationsTable\\View\\Components', 'joy-voyager-relations-table');
     }
 
     /**

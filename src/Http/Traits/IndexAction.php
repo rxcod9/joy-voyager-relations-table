@@ -153,6 +153,8 @@ trait IndexAction
             'parentDataType',
             'dataType',
             'id',
+            'slug',
+            'parentSlug',
             'relation',
             'isModelTranslatable',
             'orderBy',

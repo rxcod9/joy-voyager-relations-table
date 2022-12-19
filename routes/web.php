@@ -33,6 +33,7 @@ Route::group(['prefix' => config('joy-voyager-relations-table.admin_prefix', 'ad
 
                     Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table', $breadController.'@index')->name($dataType->slug.'.relations-table');
                     Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table-ajax', $breadController.'@ajax')->name($dataType->slug.'.relations-table-ajax');
+                    Route::post($dataType->slug . '/{id}/{relation}-relations-{slug}-table-ajax', $breadController.'@ajax')->name($dataType->slug.'.relations-table-post-ajax');
                 }
             } catch (\InvalidArgumentException $e) {
                 throw new \InvalidArgumentException("Custom routes hasn't been configured because: ".$e->getMessage(), 1);
