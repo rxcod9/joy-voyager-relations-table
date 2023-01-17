@@ -11,6 +11,9 @@
             <a href="{{ route('voyager.'.$dataType->slug.'.create') }}" class="btn btn-success btn-add-new">
                 <i class="voyager-plus"></i> <span>{{ __('voyager::generic.add_new') }}</span>
             </a>
+            @if(config('joy-voyager-datatable.quick-add.enabled', true))
+                <x-joy-voyager-quick-add :slug="$dataType->slug" />
+            @endif
         @endcan
         @can('delete', app($dataType->model_name))
             @include('voyager::partials.bulk-delete')
@@ -25,15 +28,11 @@
         --}}
         @can('delete', app($dataType->model_name))
             @if($usesSoftDeletes)
-                <input type="checkbox" @if ($showSoftDeleted) checked @endif id="show_soft_deletes" data-toggle="toggle" data-on="{{ __('voyager::bread.soft_deletes_off') }}" data-off="{{ __('voyager::bread.soft_deletes_on') }}">
+                <input type="checkbox" @if ($showSoftDeleted) checked @endif class="show_soft_deletes" data-toggle="toggle" data-on="{{ __('voyager::bread.soft_deletes_off') }}" data-off="{{ __('voyager::bread.soft_deletes_on') }}">
             @endif
         @endcan
         {{--
-        @foreach($actions as $action)
-            @if (method_exists($action, 'massAction'))
-                @include('voyager::bread.partials.actions', ['action' => $action, 'data' => null])
-            @endif
-        @endforeach
+        @include('joy-voyager-datatable::bread.partials.group-actions', ['actions' => $actions, 'dataType' => $dataType, 'data' => null])
         --}}
         @include('voyager::multilingual.language-selector')
     </div>
@@ -73,7 +72,7 @@
             @if ($isModelTranslatable)
                 $('.side-body').multilingual();
                 //Reinitialise the multilingual features when they change tab
-                $('#wrapper #dataTable').on('draw.dt', function(){
+                $('#wrapper{{ $relation }} #dataTable{{ $relation }}').on('draw.dt', function(){
                     $('.side-body').data('multilingual').init();
                 })
             @endif
@@ -84,14 +83,17 @@
                 $params = [
                     // 'order_by' => $orderBy,
                     // 'sort_order' => $sortOrder,
+                    'id' => $id,
+                    'relation' => $relation,
+                    'slug' => $slug,
                 ];
             @endphp
             $(function() {
                 $('.show_soft_deletes').change(function() {
                     if ($(this).prop('checked')) {
-                        $('#wrapper #dataTable').before('<a class="redir" href="{{ (route('voyager.'.$dataType->slug.'.index', array_merge($params, ['showSoftDeleted' => 1]), true)) }}"></a>');
+                        $('#wrapper{{ $relation }} #dataTable{{ $relation }}').before('<a class="redir" href="{{ (route('voyager.'.$parentDataType->slug.'.relations-table', array_merge($params, ['showSoftDeleted' => 1]), true)) }}"></a>');
                     }else{
-                        $('#wrapper #dataTable').before('<a class="redir" href="{{ (route('voyager.'.$dataType->slug.'.index', array_merge($params, ['showSoftDeleted' => 0]), true)) }}"></a>');
+                        $('#wrapper{{ $relation }} #dataTable{{ $relation }}').before('<a class="redir" href="{{ (route('voyager.'.$parentDataType->slug.'.relations-table', array_merge($params, ['showSoftDeleted' => 0]), true)) }}"></a>');
                     }
 
                     $('.redir')[0].click();

@@ -4,7 +4,7 @@ namespace Joy\VoyagerRelationsTable\Http\Controllers;
 
 use Joy\VoyagerRelationsTable\Http\Traits\AjaxAction;
 use Joy\VoyagerRelationsTable\Http\Traits\IndexAction;
-use TCG\Voyager\Http\Controllers\VoyagerUserController as TCGVoyagerUserController;
+use Joy\VoyagerCore\Http\Controllers\VoyagerUserController as TCGVoyagerUserController;
 
 class VoyagerUserController extends TCGVoyagerUserController
 {

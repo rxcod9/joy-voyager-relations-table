@@ -5,9 +5,9 @@ namespace Joy\VoyagerRelationsTable\Http\Controllers;
 use Illuminate\Http\Request;
 use Joy\VoyagerRelationsTable\Http\Traits\AjaxAction;
 use Joy\VoyagerRelationsTable\Http\Traits\IndexAction;
-use TCG\Voyager\Http\Controllers\VoyagerBaseController as TCGVoyagerBaseController;
+use Joy\VoyagerCore\Http\Controllers\VoyagerBaseController as BaseVoyagerBaseController;
 
-class VoyagerBaseController extends TCGVoyagerBaseController
+class VoyagerBaseController extends BaseVoyagerBaseController
 {
     use IndexAction;
     use AjaxAction;

@@ -1,7 +1,5 @@
 @php
-    $columnDefs = [
-        ['targets' => 'dt-not-orderable', 'searchable' =>  false, 'orderable' => false],
-    ];
+    array_push($columnDefs, ['targets' => 'dt-not-orderable', 'searchable' =>  false, 'orderable' => false]);
     if($withoutCheckbox) {
         array_push($columnDefs, ['targets' => 'dt-index', 'visible' =>  false]);
     }
@@ -19,7 +17,7 @@
     @endif
     <div class="panel-body">
         <div class="table-responsive">
-            <table id="dataTable{{ $dataId }}" class="table table-hover table-responsive">
+            <table id="dataTable{{ $dataId }}" class="table table-sm">
                 <thead>
                     <tr>
                         @if($showCheckboxColumn)
@@ -70,10 +68,12 @@
             var options = {!! json_encode(
                 array_merge([
                     "order" => $orderColumn,
+                    "autoWidth" => $autoWidth,
                     "language" => __('voyager::datatable'),
                     "columnDefs" => $columnDefs,
                     "processing" => true,
                     "serverSide" => true,
+                    "stateSave" => config('joy-voyager-datatable.stateSave', true),
                     "ajax" => [
                         'url' => route(
                             'voyager.'.$parentDataType->slug.'.relations-table-ajax',
@@ -81,11 +81,12 @@
                                 'id' => $id,
                                 'relation' => $relation,
                                 'slug' => $dataType->slug,
+                                'showSoftDeleted' => $showSoftDeleted
                             ]
                         ),
                         'type' => 'POST',
                     ],
-                    "columns" => \dataTypeTableColumns($dataType, $showCheckboxColumn),
+                    "columns" => \dataTypeTableColumns($dataType, $showCheckboxColumn, $searchableColumns, $sortableColumns),
                 ],
                 config('voyager.dashboard.data_tables', []))
             , true) !!};
@@ -96,7 +97,6 @@
                     "drawCallback": function( settings ) {
                         $('#wrapper{{ $dataId }} .select_all').off('click');
                         $('#wrapper{{ $dataId }} .select_all').on('click', function(e) {
-                            console.log('clicked');
                             e.stopPropagation();
                             $('#wrapper{{ $dataId }} input[name="row_id"]').prop('checked', $(this).prop('checked')).trigger('change');
                         });
@@ -108,7 +108,6 @@
 
             $('#wrapper{{ $dataId }} .select_all').off('click');
             $('#wrapper{{ $dataId }} .select_all').on('click', function(e) {
-                console.log('clicked');
                 e.stopPropagation();
                 $('#wrapper{{ $dataId }} input[name="row_id"]').prop('checked', $(this).prop('checked')).trigger('change');
             });
@@ -122,7 +121,7 @@
 
         $('#wrapper{{ $dataId }} #dataTable{{ $dataId }}').on('change', 'input[name="row_id"]', function (e) {
             var ids = [];
-            $('input[name="row_id"]').each(function() {
+            $('#wrapper{{ $dataId }} input[name="row_id"]').each(function() {
                 if ($(this).is(':checked')) {
                     ids.push($(this).val());
                 }
@@ -131,3 +130,5 @@
         });
     </script>
 @endpush
+@include('joy-voyager-datatable::bread.partials.actions-script', ['actions' => $actions, 'dataType' => $dataType, 'data' => null, 'dataId' => $dataId])
+{{-- @include('joy-voyager-datatable::partials.inline-edit-script', ['dataType' => $dataType, 'dataId' => $dataId]) --}}

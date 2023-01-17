@@ -5,9 +5,9 @@ namespace Joy\VoyagerRelationsTable\View\Components;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Component;
-use InvalidArgumentException;
 use TCG\Voyager\Facades\Voyager;
-use TCG\Voyager\Http\Controllers\Traits\BreadRelationshipParser;
+use Joy\VoyagerCore\Http\Controllers\Traits\BreadRelationshipParser;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RelationsTable extends Component
 {
@@ -49,6 +49,27 @@ class RelationsTable extends Component
     protected $slug;
 
     /**
+     * The withLabel.
+     *
+     * @var bool|null
+     */
+    protected $withLabel;
+
+    /**
+     * The autoWidth.
+     *
+     * @var bool
+     */
+    protected $autoWidth;
+
+    /**
+     * The columnDefs.
+     *
+     * @var array
+     */
+    protected $columnDefs;
+
+    /**
      * The withoutCheckbox.
      *
      * @var bool|null
@@ -61,13 +82,6 @@ class RelationsTable extends Component
      * @var bool|null
      */
     protected $withoutActions;
-
-    /**
-     * The withLabel.
-     *
-     * @var bool|null
-     */
-    protected $withLabel;
 
     /**
      * The dataId.
@@ -84,9 +98,11 @@ class RelationsTable extends Component
      * @param mixed       $id
      * @param string      $relation
      * @param string      $slug
+     * @param bool|null   $withLabel
+     * @param bool        $autoWidth
+     * @param array       $columnDefs
      * @param bool|null   $withoutCheckbox
      * @param bool|null   $withoutActions
-     * @param bool|null   $withLabel
      * @param string|null $dataId
      *
      * @return void
@@ -97,9 +113,11 @@ class RelationsTable extends Component
         $id,
         string $relation,
         string $slug,
+        ?bool $withLabel = null,
+        ?bool $autoWidth = false,
+        ?array $columnDefs = [],
         ?bool $withoutCheckbox = null,
         ?bool $withoutActions = null,
-        ?bool $withLabel = null,
         ?string $dataId = null
     ) {
         $this->request         = $request;
@@ -107,9 +125,11 @@ class RelationsTable extends Component
         $this->id              = $id;
         $this->relation        = $relation;
         $this->slug            = $slug;
+        $this->withLabel       = $withLabel;
+        $this->autoWidth       = $autoWidth;
+        $this->columnDefs      = $columnDefs;
         $this->withoutCheckbox = $withoutCheckbox;
         $this->withoutActions  = $withoutActions;
-        $this->withLabel       = $withLabel;
         $this->dataId          = $dataId;
     }
 
@@ -146,11 +166,6 @@ class RelationsTable extends Component
             $parentModel = app($parentDataType->model_name);
             $model       = app($dataType->model_name);
             $parentData  = $parentModel->findOrFail($id);
-
-            // dd($parentModel, $relation);
-            if (!modelHasRelationshipMethod($parentModel, $relation)) {
-                throw new InvalidArgumentException('Invalid relationship');
-            }
 
             // Use withTrashed() if model uses SoftDeletes and if toggle is selected
             if ($model && in_array(SoftDeletes::class, class_uses_recursive($model)) && Auth::user()->can('delete', app($dataType->model_name))) {
@@ -202,7 +217,8 @@ class RelationsTable extends Component
         }
 
         // Define list of columns that can be sorted server side
-        $sortableColumns = $this->getSortableColumns($dataType->browseRows);
+        $searchableColumns = $this->getSearchableColumns($dataType->browseRows);
+        $sortableColumns   = $this->getSortableColumns($dataType->browseRows);
 
         $view = 'joy-voyager-relations-table::components.relations-table';
 
@@ -224,16 +240,37 @@ class RelationsTable extends Component
             'isModelTranslatable' => $isModelTranslatable,
             'orderBy'             => $orderBy,
             'orderColumn'         => $orderColumn,
+            'searchableColumns'   => $searchableColumns,
             'sortableColumns'     => $sortableColumns,
             'sortOrder'           => $sortOrder,
             'usesSoftDeletes'     => $usesSoftDeletes,
             'showSoftDeleted'     => $showSoftDeleted,
             'showCheckboxColumn'  => $showCheckboxColumn,
+            'withLabel'           => $this->withLabel,
+            'autoWidth'           => $this->autoWidth,
+            'columnDefs'          => $this->columnDefs,
             'withoutCheckbox'     => $this->withoutCheckbox,
             'withoutActions'      => $this->withoutActions,
-            'withLabel'           => $this->withLabel,
             'dataId'              => $this->dataId,
         ]);
+    }
+
+    protected function getSearchableColumns($rows)
+    {
+        return $rows->filter(function ($item) {
+            if ($item->type != 'relationship') {
+                return true;
+            }
+            if ($item->details->type != 'belongsTo') {
+                return false;
+            }
+
+            // @todo enable/disable from config
+
+            return !$this->relationIsUsingAccessorAsLabel($item->details);
+        })
+        ->pluck('field')
+        ->toArray();
     }
 
     protected function getSortableColumns($rows)

@@ -31,9 +31,18 @@ Route::group(['prefix' => config('joy-voyager-relations-table.admin_prefix', 'ad
                 foreach (Voyager::model('DataType')::all() as $dataType) {
                     $breadController = $namespacePrefix.'VoyagerBaseController';
 
-                    Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table', $breadController.'@index')->name($dataType->slug.'.relations-table');
-                    Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table-ajax', $breadController.'@ajax')->name($dataType->slug.'.relations-table-ajax');
-                    Route::post($dataType->slug . '/{id}/{relation}-relations-{slug}-table-ajax', $breadController.'@ajax')->name($dataType->slug.'.relations-table-post-ajax');
+                    Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table', $breadController.'@index')
+                        ->name($dataType->slug.'.relations-table')
+                        ->where('relation', '[A-Za-z0-9-_]+')
+                        ->where('slug', '[A-Za-z0-9-_]+');
+                    Route::get($dataType->slug . '/{id}/{relation}-relations-{slug}-table-ajax', $breadController.'@ajax')
+                        ->name($dataType->slug.'.relations-table-ajax')
+                        ->where('relation', '[A-Za-z0-9-_]+')
+                        ->where('slug', '[A-Za-z0-9-_]+');
+                    Route::post($dataType->slug . '/{id}/{relation}-relations-{slug}-table-ajax', $breadController.'@ajax')
+                        ->name($dataType->slug.'.relations-table-post-ajax')
+                        ->where('relation', '[A-Za-z0-9-_]+')
+                        ->where('slug', '[A-Za-z0-9-_]+');
                 }
             } catch (\InvalidArgumentException $e) {
                 throw new \InvalidArgumentException("Custom routes hasn't been configured because: ".$e->getMessage(), 1);

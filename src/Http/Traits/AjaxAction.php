@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 use Joy\VoyagerDatatable\Services\DataTable;
+use Joy\VoyagerRelationsTable\Services\RelationshipResolver;
 use TCG\Voyager\Facades\Voyager;
 use TCG\Voyager\Models\DataType;
 
@@ -58,12 +58,11 @@ trait AjaxAction
             $model       = app($dataType->model_name);
             $parentData  = $parentModel->findOrFail($id);
 
-            if (!modelHasRelationshipMethod($parentModel, $relation)) {
-                throw new InvalidArgumentException('Invalid relationship');
-            }
-
-            // $query = $model::select($dataType->name . '.*');
-            $query = $parentData->{$relation}()->select($dataType->name . '.*');
+            $query = app(RelationshipResolver::class)->handle(
+                $parentDataType,
+                $parentData,
+                $relation,
+            )->select($dataType->name . '.*');
 
             if ($dataType->scope && $dataType->scope != '' && method_exists($model, 'scope' . ucfirst($dataType->scope))) {
                 $query->{$dataType->scope}();

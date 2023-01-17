@@ -1,5 +1,5 @@
 @foreach($relations as $relation => $slug)
-    <x-joy-voyager-relations-table
+    <x-joy-voyager-relations-table-script
         :parentSlug="$parentSlug"
         :id="$id"
         :relation="$relation"
