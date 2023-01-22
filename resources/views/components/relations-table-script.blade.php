@@ -1,5 +1,5 @@
 @php
-    array_push($columnDefs, ['targets' => 'dt-not-orderable', 'searchable' =>  false, 'orderable' => false]);
+    array_push($columnDefs, ['targets' => 'dt-not-orderable', 'orderable' => false]);
     if($withoutCheckbox) {
         array_push($columnDefs, ['targets' => 'dt-index', 'visible' =>  false]);
     }

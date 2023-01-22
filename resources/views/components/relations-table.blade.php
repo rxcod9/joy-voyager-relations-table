@@ -16,6 +16,7 @@
     </div>
     @endif
     <div class="panel-body">
+        {{-- @include('joy-voyager-datatable::partials.global-filters') --}}
         <div class="table-responsive">
             <table id="dataTable{{ $dataId }}" class="table table-sm">
                 <thead>
@@ -33,6 +34,7 @@
                         <th class="actions text-right dt-not-orderable dt-actions">{{ __('voyager::generic.actions') }}</th>
                     </tr>
                 </thead>
+                {{-- @include('joy-voyager-datatable::partials.column-filters') --}}
                 <tbody>
                 </tbody>
             </table>
