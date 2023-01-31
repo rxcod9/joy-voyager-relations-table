@@ -265,7 +265,7 @@ class RelationsTable extends Component
             'columnDefs'            => $this->columnDefs,
             'withoutCheckbox'       => $this->withoutCheckbox,
             'withoutActions'        => $this->withoutActions,
-            'dataId'                => $this->dataId,
+            'dataId'                => $this->dataId ? \Str::studly($this->dataId) : null,
         ]);
     }
 

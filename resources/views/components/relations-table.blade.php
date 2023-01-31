@@ -1,5 +1,5 @@
 @php
-    array_push($columnDefs, ['targets' => 'dt-not-orderable', 'searchable' =>  false, 'orderable' => false]);
+    array_push($columnDefs, ['targets' => 'dt-not-orderable', 'orderable' => false]);
     if($withoutCheckbox) {
         array_push($columnDefs, ['targets' => 'dt-index', 'visible' =>  false]);
     }
@@ -34,7 +34,7 @@
                         <th class="actions text-right dt-not-orderable dt-actions">{{ __('voyager::generic.actions') }}</th>
                     </tr>
                 </thead>
-                {{-- @include('joy-voyager-datatable::partials.column-filters') --}}
+                @include('joy-voyager-datatable::partials.column-filters')
                 <tbody>
                 </tbody>
             </table>
@@ -65,6 +65,29 @@
     </div><!-- /.modal -->
 
     <script>
+        /**
+        * Execute a function given a delay time
+        * 
+        * @param {type} func
+        * @param {type} wait
+        * @param {type} immediate
+        * @returns {Function}
+        */
+        var debounce = function (func, wait, immediate) {
+            var timeout;
+            return function() {
+                var context = this, args = arguments;
+                var later = function() {
+                        timeout = null;
+                        if (!immediate) func.apply(context, args);
+                };
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        };
+
         $(document).ready(function () {
 
             var options = {!! json_encode(
@@ -106,7 +129,293 @@
                 }
             );
 
-            var table = $('#wrapper{{ $dataId }} #dataTable{{ $dataId }}').DataTable(options);
+            var table{{ $dataId }} = $('#wrapper{{ $dataId }} #dataTable{{ $dataId }}').DataTable(options);
+
+            const initColumnFilters{{ $dataId }} = function(el) {
+                console.log('initColumnFilters{{ $dataId }}');
+                const dataTable{{ $dataId }} = $(el).DataTable();
+                $(el).DataTable().table().columns().eq(0).each(function(colIdx) {
+
+                    // cell
+                    var cell = $('thead.dt-col-filters tr th', el)
+                        .eq($(dataTable{{ $dataId }}.table().column(colIdx).header()).index());
+                    const filterType = cell.data('type');
+
+                    switch (filterType) {
+                        case 'code_editor':
+                        case 'markdown_editor':
+                        case 'rich_text_box':
+                        case 'text_area':
+                        case 'text':
+                            console.log('el', $('input', cell), $('input', cell).attr('name'));
+                            $('input', cell)
+                                .off('keyup change')
+                                .on('keyup change', debounce(function (e) {
+                                    console.log('change', filterType);
+                                    e.stopPropagation();
+                                    dataTable{{ $dataId }}.table().column(colIdx).search($(this).val()).draw();
+                            }, 500));
+                            break;
+                        case 'timestamp':
+                            $('input[type="datetime"]', cell)
+                                .off('dp.change')
+                                .on('dp.change', debounce(function (e) {
+                                    console.log('change', filterType);
+                                    e.stopPropagation();
+                                    const filterGroup = $(this).data('filter-group');
+                                    const parent = $(this).closest('.form-group');
+                                    const fromElValue = $('input[type="datetime"][data-filter-group=' + filterGroup + '][data-filter-group-from]', parent).val();
+                                    const toElValue = $('input[type="datetime"][data-filter-group=' + filterGroup + '][data-filter-group-to]', parent).val();
+                                    dataTable{{ $dataId }}.table().column(colIdx).search([fromElValue, toElValue]).draw();
+                            }, 500));
+                            break;
+                        case 'number':
+                            $('input[type="number"]', cell)
+                                .off('change')
+                                .on('change', debounce(function (e) {
+                                    console.log('change', filterType);
+                                    e.stopPropagation();
+                                    const filterGroup = $(this).data('filter-group');
+                                    const parent = $(this).closest('.form-group');
+                                    const fromElValue = $('input[type="number"][data-filter-group=' + filterGroup + '][data-filter-group-from]', parent).val();
+                                    const toElValue = $('input[type="number"][data-filter-group=' + filterGroup + '][data-filter-group-to]', parent).val();
+                                    dataTable{{ $dataId }}.table().column(colIdx).search([fromElValue, toElValue]).draw();
+                            }, 500));
+                            break;
+                        case 'date':
+                            $('input[type="date"]', cell)
+                                .off('change')
+                                .on('change', debounce(function (e) {
+                                    console.log('change', filterType);
+                                    e.stopPropagation();
+                                    const filterGroup = $(this).data('filter-group');
+                                    const parent = $(this).closest('.form-group');
+                                    const fromElValue = $('input[type="date"][data-filter-group=' + filterGroup + '][data-filter-group-from]', parent).val();
+                                    const toElValue = $('input[type="date"][data-filter-group=' + filterGroup + '][data-filter-group-to]', parent).val();
+                                    dataTable{{ $dataId }}.table().column(colIdx).search([fromElValue, toElValue]).draw();
+                            }, 500));
+                            break;
+                        case 'image':
+                        case 'file':
+                        case 'checkbox':
+                        case 'select_dropdown':
+                            $('select', cell)
+                                .off('change.col-filter-' + filterType)
+                                .on('change.col-filter-' + filterType, function (e) {
+                                    dataTable{{ $dataId }}.table().column(colIdx).search($(this).val()).draw();
+                            });
+                            break;
+                        case 'relationship':
+                            const relationshipType = cell.data('relationship-type');
+                            switch (relationshipType) {
+                                case 'belongsTo':
+                                case 'belongsToMany':
+                                    $('select', cell)
+                                        .off('change.col-filter-' + filterType + '-' + relationshipType)
+                                        .on('change.col-filter-' + filterType + '-' + relationshipType, function (e) {
+                                            dataTable{{ $dataId }}.table().column(colIdx).search($(this).val()).draw();
+                                    });
+                                    break;
+                                case 'morphTo':
+                                    const changeMorphToTypeHandler = function (e) {
+                                        const parent = $(this).closest('.form-group');
+                                        const morphToType = $('.select2-morph-to-type', parent);
+                                        const morphToId = $('.select2-morph-to-id', parent);
+
+                                        morphToId.off('change.col-filter-' + filterType + '-' + relationshipType + '-id');
+                                        morphToId.val([]).trigger('change');
+                                        morphToId.on('change.col-filter-' + filterType + '-' + relationshipType + '-id', changeMorphToIdHandler);
+
+                                        dataTable{{ $dataId }}.table().column(colIdx).search(morphToType.val() + ',,' + morphToId.val().join(',')).draw();
+                                    };
+                                    const changeMorphToIdHandler = function (e) {
+                                        const parent = $(this).closest('.form-group');
+                                        const morphToType = $('.select2-morph-to-type', parent);
+                                        const morphToId = $('.select2-morph-to-id', parent);
+                                        dataTable{{ $dataId }}.table().column(colIdx).search(morphToType.val() + ',,' + morphToId.val().join(',')).draw();
+                                    };
+                                    $('select.select2-morph-to-type', cell)
+                                        .off('change.select2-morph-to-type')
+                                        .off('change.col-filter-' + filterType + '-' + relationshipType + '-type')
+                                        .on('change.col-filter-' + filterType + '-' + relationshipType + '-type', changeMorphToTypeHandler);
+                                    $('select.select2-morph-to-id', cell)
+                                        .off('change.col-filter-' + filterType + '-' + relationshipType + '-id')
+                                        .on('change.col-filter-' + filterType + '-' + relationshipType + '-id', changeMorphToIdHandler);
+                                    break;
+                            
+                                default:
+                                    console.log('NOT IMPLEMENTED YET filterType: ' + filterType)
+                                    break;
+                            }
+                            break;
+                    
+                        default:
+                            console.log('NOT IMPLEMENTED YET filterType: ' + filterType)
+                            break;
+                    }
+                });
+            };
+
+            const destroyColumnFilters{{ $dataId }} = function(el) {
+                console.log('destroyColumnFilters{{ $dataId }}');
+                const dataTable{{ $dataId }} = $(el).DataTable();
+                $(el).DataTable().table().columns().eq(0).each(function(colIdx) {
+
+                    // cell
+                    var cell = $('thead.dt-col-filters tr th', el)
+                        .eq($(dataTable{{ $dataId }}.table().column(colIdx).header()).index());
+                    const filterType = cell.data('type');
+
+                    switch (filterType) {
+                        case 'code_editor':
+                        case 'markdown_editor':
+                        case 'rich_text_box':
+                        case 'text_area':
+                        case 'text':
+                            console.log('el', $('input', cell), $('input', cell).attr('name'));
+                            $('input', cell)
+                                .off('keyup change');
+                            break;
+                        case 'timestamp':
+                            $('input[type="datetime"]', cell)
+                                .off('dp.change');
+                            break;
+                        case 'number':
+                            $('input[type="number"]', cell)
+                                .off('change');
+                            break;
+                        case 'date':
+                            $('input[type="date"]', cell)
+                                .off('change');
+                            break;
+                        case 'image':
+                        case 'file':
+                        case 'checkbox':
+                        case 'select_dropdown':
+                            $('select', cell)
+                                .off('change.col-filter-' + filterType);
+                            break;
+                        case 'relationship':
+                            const relationshipType = cell.data('relationship-type');
+                            switch (relationshipType) {
+                                case 'belongsTo':
+                                case 'belongsToMany':
+                                    $('select', cell)
+                                        .off('change.col-filter-' + filterType + '-' + relationshipType);
+                                    break;
+                                case 'morphTo':
+                                    $('select.select2-morph-to-type', cell)
+                                        .off('change.col-filter-' + filterType + '-' + relationshipType + '-type');
+                                    $('select.select2-morph-to-id', cell)
+                                        .off('change.col-filter-' + filterType + '-' + relationshipType + '-id');
+                                    break;
+                            
+                                default:
+                                    console.log('NOT IMPLEMENTED YET filterType: ' + filterType)
+                                    break;
+                            }
+                            break;
+
+                        default:
+                            console.log('NOT IMPLEMENTED YET filterType: ' + filterType)
+                            break;
+                    }
+                });
+            };
+
+            const clearColumnFilters{{ $dataId }} = function(el) {
+                console.log('clearColumnFilters{{ $dataId }}');
+                destroyColumnFilters{{ $dataId }}(el);
+                const dataTable{{ $dataId }} = $(el).DataTable();
+                $(el).DataTable().table().columns().eq(0).each(function(colIdx) {
+
+                    // cell
+                    var cell = $('thead.dt-col-filters tr th', el)
+                        .eq($(dataTable{{ $dataId }}.table().column(colIdx).header()).index());
+                    const filterType = cell.data('type');
+
+                    switch (filterType) {
+                        case 'code_editor':
+                        case 'markdown_editor':
+                        case 'rich_text_box':
+                        case 'text_area':
+                        case 'text':
+                            console.log('el', $('input', cell), $('input', cell).attr('name'));
+                            $('input', cell).val(null);
+                            break;
+                        case 'timestamp':
+                            $('input[type="datetime"]', cell).val(null);
+                            break;
+                        case 'number':
+                            $('input[type="number"]', cell).val(null);
+                            break;
+                        case 'date':
+                            $('input[type="date"]', cell).val(null);
+                            break;
+                        case 'image':
+                        case 'file':
+                        case 'checkbox':
+                        case 'select_dropdown':
+                            const selectEl = $('select', cell);
+                            if(selectEl.prop('multiple')) {
+                                selectEl.val([]).trigger('change');
+                            } else {
+                                selectEl.val(null).trigger('change');
+                            }
+                            break;
+                        case 'relationship':
+                            const relationshipType = cell.data('relationship-type');
+                            switch (relationshipType) {
+                                case 'belongsTo':
+                                case 'belongsToMany':
+                                    const selectEl = $('select', cell);
+                                    if(selectEl.prop('multiple')) {
+                                        selectEl.val([]).trigger('change');
+                                    } else {
+                                        selectEl.val(null).trigger('change');
+                                    }
+                                    break;
+                                case 'morphTo':
+                                    const morphToTypeEl = $('select.select2-morph-to-type', cell);
+                                    morphToTypeEl.val(null).trigger('change');
+
+                                    const morphToIdEl = $('select.select2-morph-to-id', cell);
+                                    morphToIdEl.val([]).trigger('change');
+                                    break;
+                            
+                                default:
+                                    console.log('NOT IMPLEMENTED YET filterType: ' + filterType)
+                                    break;
+                            }
+                            break;
+
+                        default:
+                            console.log('NOT IMPLEMENTED YET filterType: ' + filterType)
+                            break;
+                    }
+
+                    // reset filters
+                    dataTable{{ $dataId }}.table().column(colIdx).search('');
+                });
+                initColumnFilters{{ $dataId }}(el);
+                dataTable{{ $dataId }}.table().draw();
+            };
+
+            initColumnFilters{{ $dataId }}($('#wrapper{{ $dataId }} #dataTable{{ $dataId }}'));
+
+            $('#wrapper{{ $dataId }} #dataTable{{ $dataId }} .dt-col-reset-filters').off('click');
+            $('#wrapper{{ $dataId }} #dataTable{{ $dataId }} .dt-col-reset-filters').on('click', function(e) {
+                e.stopPropagation();
+                clearColumnFilters{{ $dataId }}($('#wrapper{{ $dataId }} #dataTable{{ $dataId }}'));
+                return false;
+            });
+
+            $('#wrapper{{ $dataId }} #dataTable{{ $dataId }} .dt-col-reload').off('click');
+            $('#wrapper{{ $dataId }} #dataTable{{ $dataId }} .dt-col-reload').on('click', function(e) {
+                e.stopPropagation();
+                $('#wrapper{{ $dataId }} #dataTable{{ $dataId }}').DataTable().ajax.reload();
+                return false;
+            });
 
             $('#wrapper{{ $dataId }} .select_all').off('click');
             $('#wrapper{{ $dataId }} .select_all').on('click', function(e) {
