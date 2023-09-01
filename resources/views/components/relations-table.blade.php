@@ -98,6 +98,7 @@
                     "columnDefs" => $columnDefs,
                     "processing" => true,
                     "serverSide" => true,
+                    // "colReorder" => true,
                     "stateSave" => config('joy-voyager-datatable.stateSave', true),
                     "ajax" => [
                         'url' => route(
@@ -146,12 +147,12 @@
                         case 'markdown_editor':
                         case 'rich_text_box':
                         case 'text_area':
+                        case 'color':
                         case 'text':
-                            console.log('el', $('input', cell), $('input', cell).attr('name'));
                             $('input', cell)
                                 .off('keyup change')
                                 .on('keyup change', debounce(function (e) {
-                                    console.log('change', filterType);
+                                    console.log('e', e);
                                     e.stopPropagation();
                                     dataTable{{ $dataId }}.table().column(colIdx).search($(this).val()).draw();
                             }, 500));
@@ -160,7 +161,6 @@
                             $('input[type="datetime"]', cell)
                                 .off('dp.change')
                                 .on('dp.change', debounce(function (e) {
-                                    console.log('change', filterType);
                                     e.stopPropagation();
                                     const filterGroup = $(this).data('filter-group');
                                     const parent = $(this).closest('.form-group');
@@ -171,9 +171,8 @@
                             break;
                         case 'number':
                             $('input[type="number"]', cell)
-                                .off('change')
-                                .on('change', debounce(function (e) {
-                                    console.log('change', filterType);
+                                .off('keyup change')
+                                .on('keyup change', debounce(function (e) {
                                     e.stopPropagation();
                                     const filterGroup = $(this).data('filter-group');
                                     const parent = $(this).closest('.form-group');
@@ -186,7 +185,6 @@
                             $('input[type="date"]', cell)
                                 .off('change')
                                 .on('change', debounce(function (e) {
-                                    console.log('change', filterType);
                                     e.stopPropagation();
                                     const filterGroup = $(this).data('filter-group');
                                     const parent = $(this).closest('.form-group');
@@ -196,8 +194,13 @@
                             }, 500));
                             break;
                         case 'image':
+                        case 'multiple_images':
+                        case 'media_picker':
                         case 'file':
+                        case 'multiple_checkbox':
                         case 'checkbox':
+                        case 'radio_btn':
+                        case 'select_multiple':
                         case 'select_dropdown':
                             $('select', cell)
                                 .off('change.col-filter-' + filterType)
@@ -271,8 +274,8 @@
                         case 'markdown_editor':
                         case 'rich_text_box':
                         case 'text_area':
+                        case 'color':
                         case 'text':
-                            console.log('el', $('input', cell), $('input', cell).attr('name'));
                             $('input', cell)
                                 .off('keyup change');
                             break;
@@ -282,15 +285,20 @@
                             break;
                         case 'number':
                             $('input[type="number"]', cell)
-                                .off('change');
+                                .off('keyup change');
                             break;
                         case 'date':
                             $('input[type="date"]', cell)
                                 .off('change');
                             break;
                         case 'image':
+                        case 'multiple_images':
+                        case 'media_picker':
                         case 'file':
+                        case 'multiple_checkbox':
                         case 'checkbox':
+                        case 'radio_btn':
+                        case 'select_multiple':
                         case 'select_dropdown':
                             $('select', cell)
                                 .off('change.col-filter-' + filterType);
@@ -339,8 +347,8 @@
                         case 'markdown_editor':
                         case 'rich_text_box':
                         case 'text_area':
+                        case 'color':
                         case 'text':
-                            console.log('el', $('input', cell), $('input', cell).attr('name'));
                             $('input', cell).val(null);
                             break;
                         case 'timestamp':
@@ -353,8 +361,13 @@
                             $('input[type="date"]', cell).val(null);
                             break;
                         case 'image':
+                        case 'multiple_images':
+                        case 'media_picker':
                         case 'file':
+                        case 'multiple_checkbox':
                         case 'checkbox':
+                        case 'radio_btn':
+                        case 'select_multiple':
                         case 'select_dropdown':
                             const selectEl = $('select', cell);
                             if(selectEl.prop('multiple')) {
